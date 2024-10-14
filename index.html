@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SEKİZDİJİTAL TEKNİK SERVİS FORMU</title>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" href="icon.png">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            max-width: 900px;
+            background-color: #f4f4f9;
+        }
+        h2 {
+            text-align: center;
+            color: #e67e22;
+            font-size: 24px;
+        }
+        .form-container {
+            padding: 20px;
+            background-color: white;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+        label {
+            font-weight: bold;
+            color: #555;
+            margin-top: 10px;
+            display: block;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            color: #333;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #2ecc71;
+        }
+        .total-price {
+            margin-top: 10px;
+            text-align: right;
+            font-weight: bold;
+            color: #e74c3c;
+        }
+    </style>
+</head>
+<body>
+    <h2>SEKİZDİJİTAL TEKNİK SERVİS FORMU</h2>
+    <div class="form-container">
+        <form id="servisFormu">
+            <label for="firmaAdi">Firma:</label>
+            <input type="text" id="firmaAdi" name="firmaAdi" required>
+
+            <label for="yetkiliAdi">Yetkili Adı Soyadı:</label>
+            <input type="text" id="yetkiliAdi" name="yetkiliAdi" required>
+
+            <label for="yetkiliTel">Telefon:</label>
+            <input type="tel" id="yetkiliTel" name="yetkiliTel" required>
+
+            <label for="adres">Adres:</label>
+            <input type="text" id="adres" name="adres" required>
+
+            <label for="arizaDetayi">Tespit Edilen Arıza:</label>
+            <textarea id="arizaDetayi" name="arizaDetayi" rows="4" required></textarea>
+
+            <label for="yapilanIslem">Yapılan İşlemler ve Sonuç:</label>
+            <textarea id="yapilanIslem" name="yapilanIslem" rows="4" required></textarea>
+
+            <table id="malzemeTablosu">
+                <thead>
+                    <tr>
+                        <th>Kod No</th>
+                        <th>Malzeme Adı</th>
+                        <th>Adet</th>
+                        <th>Birim Fiyatı</th>
+                        <th>Toplam Tutar</th>
+                        <th>Sil</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><input type="text" name="kodNo[]"></td>
+                        <td><input type="text" name="malzemeAdi[]"></td>
+                        <td><input type="number" class="adet" name="adet[]" min="1" required></td>
+                        <td><input type="number" class="birimFiyat" name="birimFiyat[]" min="0" required></td>
+                        <td><input type="number" class="toplamTutar" readonly></td>
+                        <td><button type="button" class="silButonu">Sil</button></td>
+                    </tr>
+                </tbody>
+            </table>
+            <button type="button" id="satirEkle">Satır Ekle</button>
+            <div class="total-price">
+                Toplam Tutar: <span id="toplamTutar">0</span> TL
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Service Worker Kaydı
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js')
+            .then(reg => console.log("Service Worker kayıtlı:", reg))
+            .catch(err => console.log("Service Worker hatası:", err));
+        }
+
+        // Satır Ekleme Fonksiyonu
+        document.getElementById('satirEkle').addEventListener('click', function() {
+            const table = document.getElementById('malzemeTablosu').getElementsByTagName('tbody')[0];
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td><input type="text" name="kodNo[]"></td>
+                <td><input type="text" name="malzemeAdi[]"></td>
+                <td><input type="number" class="adet" name="adet[]" min="1" required></td>
+                <td><input type="number" class="birimFiyat" name="birimFiyat[]" min="0" required></td>
+                <td><input type="number" class="toplamTutar" readonly></td>
+                <td><button type="button" class="silButonu">Sil</button></td>
+            `;
+            table.appendChild(newRow);
+            calculateTotal();
+        });
+
+        // Satır Silme Fonksiyonu
+        document.addEventListener('click', function(event) {
+            if (event.target.classList.contains('silButonu')) {
+                const row = event.target.closest('tr');
+                row.remove();
+                calculateTotal();
+            }
+        });
+
+        // Toplam Hesaplama Fonksiyonu
+        function calculateTotal() {
+            let toplamTutar = 0;
+            const rows = document.querySelectorAll('#malzemeTablosu tbody tr');
+            rows.forEach(row => {
+                const adet = row.querySelector('.adet').value || 0;
+                const birimFiyat = row.querySelector('.birimFiyat').value || 0;
+                const toplam = adet * birimFiyat;
+                row.querySelector('.toplamTutar').value = toplam;
+                toplamTutar += toplam;
+            });
+            document.getElementById('toplamTutar').innerText = toplamTutar.toFixed(2);
+        }
+
+        // Her Girdi Değişikliğinde Toplamı Yeniden Hesapla
+        document.addEventListener('input', function(event) {
+            if (event.target.classList.contains('adet') || event.target.classList.contains('birimFiyat')) {
+                calculateTotal();
+            }
+        });
+    </script>
+</body>
+</html>
