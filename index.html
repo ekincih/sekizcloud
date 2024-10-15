@@ -4,8 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SEKİZDİJİTAL TEKNİK SERVİS FORMU</title>
-    <link rel="manifest" href="/manifest.json">
-    <link rel="icon" href="icon.png">
+    <link rel="manifest" href="manifest.json">
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js')
+            .then(reg => console.log("Service Worker kaydedildi:", reg))
+            .catch(err => console.log("Service Worker hatası:", err));
+        }
+    </script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -38,6 +44,19 @@
             border-radius: 4px;
             color: #333;
         }
+        table {
+            width: 100%;
+            margin-top: 10px;
+            border-collapse: collapse;
+            color: #333;
+        }
+        table, th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
         button {
             padding: 10px 15px;
             background-color: #27ae60;
@@ -49,118 +68,207 @@
         button:hover {
             background-color: #2ecc71;
         }
+        .imza-alani {
+            border: 2px solid #ccc;
+            display: block;
+            margin: 10px 0;
+        }
         .total-price {
             margin-top: 10px;
             text-align: right;
             font-weight: bold;
             color: #e74c3c;
         }
+        .total-price span {
+            font-size: 20px;
+            color: #e74c3c;
+        }
+        .actions {
+            text-align: right;
+            margin-top: 20px;
+        }
+        .notlar {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .notlar h3 {
+            color: #e67e22;
+            font-size: 18px;
+        }
+        .notlar ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .notlar ul li {
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 5px;
+        }
     </style>
 </head>
 <body>
+
     <h2>SEKİZDİJİTAL TEKNİK SERVİS FORMU</h2>
     <div class="form-container">
         <form id="servisFormu">
-            <label for="firmaAdi">Firma:</label>
-            <input type="text" id="firmaAdi" name="firmaAdi" required>
-
-            <label for="yetkiliAdi">Yetkili Adı Soyadı:</label>
-            <input type="text" id="yetkiliAdi" name="yetkiliAdi" required>
-
-            <label for="yetkiliTel">Telefon:</label>
-            <input type="tel" id="yetkiliTel" name="yetkiliTel" required>
-
-            <label for="adres">Adres:</label>
-            <input type="text" id="adres" name="adres" required>
-
-            <label for="arizaDetayi">Tespit Edilen Arıza:</label>
-            <textarea id="arizaDetayi" name="arizaDetayi" rows="4" required></textarea>
-
-            <label for="yapilanIslem">Yapılan İşlemler ve Sonuç:</label>
-            <textarea id="yapilanIslem" name="yapilanIslem" rows="4" required></textarea>
-
-            <table id="malzemeTablosu">
-                <thead>
-                    <tr>
-                        <th>Kod No</th>
-                        <th>Malzeme Adı</th>
-                        <th>Adet</th>
-                        <th>Birim Fiyatı</th>
-                        <th>Toplam Tutar</th>
-                        <th>Sil</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><input type="text" name="kodNo[]"></td>
-                        <td><input type="text" name="malzemeAdi[]"></td>
-                        <td><input type="number" class="adet" name="adet[]" min="1" required></td>
-                        <td><input type="number" class="birimFiyat" name="birimFiyat[]" min="0" required></td>
-                        <td><input type="number" class="toplamTutar" readonly></td>
-                        <td><button type="button" class="silButonu">Sil</button></td>
-                    </tr>
-                </tbody>
-            </table>
-            <button type="button" id="satirEkle">Satır Ekle</button>
-            <div class="total-price">
-                Toplam Tutar: <span id="toplamTutar">0</span> TL
+            <div class="form-section">
+                <div class="two-columns">
+                    <div>
+                        <label for="firmaAdi">Firma:</label>
+                        <input type="text" id="firmaAdi" name="firmaAdi" required>
+                    </div>
+                    <div>
+                        <label for="tarih">Tarih:</label>
+                        <input type="date" id="tarih" name="tarih" required>
+                    </div>
+                </div>
             </div>
+
+            <div class="form-section">
+                <label for="yetkiliBilgileri">Yetkili Kişi Bilgileri:</label>
+                <div class="two-columns">
+                    <div>
+                        <label for="yetkiliAdi">Adı Soyadı:</label>
+                        <input type="text" id="yetkiliAdi" name="yetkiliAdi" required>
+                    </div>
+                    <div>
+                        <label for="yetkiliTel">Telefon:</label>
+                        <input type="tel" id="yetkiliTel" name="yetkiliTel" required>
+                    </div>
+                </div>
+                <label for="adres">Adres:</label>
+                <input type="text" id="adres" name="adres" required>
+            </div>
+
+            <div class="form-section">
+                <label for="arizaDetayi">Tespit Edilen Arıza:</label>
+                <textarea id="arizaDetayi" name="arizaDetayi" rows="4" required></textarea>
+            </div>
+
+            <div class="form-section">
+                <label for="yapilanIslem">Yapılan İşlemler ve Sonuç:</label>
+                <textarea id="yapilanIslem" name="yapilanIslem" rows="4" required></textarea>
+            </div>
+
+            <div class="form-section">
+                <label for="malzemeTablosu">Kullanılan Malzemeler:</label>
+                <table id="malzemeTablosu">
+                    <thead>
+                        <tr>
+                            <th>Kod No</th>
+                            <th>Malzeme Adı</th>
+                            <th>Adet</th>
+                            <th>Birim Fiyatı</th>
+                            <th>Toplam Tutar</th>
+                            <th>Vergi Oranı (%)</th>
+                            <th>Sil</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><input type="text" name="kodNo[]"></td>
+                            <td><input type="text" name="malzemeAdi[]"></td>
+                            <td><input type="number" name="adet[]" class="adet"></td>
+                            <td><input type="number" name="birimFiyat[]" class="birimFiyat"></td>
+                            <td><input type="number" name="toplamTutar[]" class="toplamTutar" readonly></td>
+                            <td><input type="number" name="vergiOrani[]" class="vergiOrani" value="20"></td>
+                            <td><button type="button" class="silButonu">Sil</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <button type="button" id="satirEkle">Satır Ekle</button>
+            </div>
+
+            <!-- Toplam Fiyat ve KDV -->
+            <div class="total-price">
+                <p>Toplam Tutar: <span id="toplamTutar">0</span> TL</p>
+                <p>KDV: <span id="kdvTutari">0</span> TL</p>
+                <p>Genel Toplam: <span id="genelToplam">0</span> TL</p>
+            </div>
+
+            <div class="form-section two-columns">
+                <div>
+                    <label for="callvisionYetkili">SekizDijital Yetkilisi:</label>
+                    <input type="text" id="callvisionYetkili" name="callvisionYetkili" placeholder="Ad Soyad">
+                </div>
+                <div>
+                    <label for="musteriYetkili">Müşteri Yetkilisi:</label>
+                    <input type="text" id="musteriYetkili" name="musteriYetkili" placeholder="Ad Soyad">
+                    <canvas id="imzaAlani" width="400" height="200" class="imza-alani"></canvas>
+                </div>
+            </div>
+
+            <div class="actions">
+                <button type="button" id="clear-signature">İmza Temizle</button>
+            </div>
+
+            <!-- Notlar -->
+            <div class="notlar">
+                <h3>Notlar</h3>
+                <ul>
+                    <li>Bu belge fatura niteliği taşımaz.</li>
+                    <li>Müşteri bu formu imzaladıktan sonra makineyi sorunsuz teslim aldığını beyan etmiş olur.</li>
+                    <li>Yapılan işlemlerden sonra ücret iadesi yapılmaz.</li>
+                    <li>Garanti dışı makinelerden işçilik ücreti alınır.</li>
+                    <li>İstanbul dışı servislerde yol ve konaklama müşteriye aittir.</li>
+                    <li>Arıza tespit ücreti 500 TL'dir, sonrasında fiyattan düşülür.</li>
+                </ul>
+            </div>
+
         </form>
     </div>
 
     <script>
-        // Service Worker Kaydı
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/sw.js')
-            .then(reg => console.log("Service Worker kayıtlı:", reg))
-            .catch(err => console.log("Service Worker hatası:", err));
-        }
+        const canvas = document.getElementById('imzaAlani');
+        const ctx = canvas.getContext('2d');
+        let isDrawing = false;
 
-        // Satır Ekleme Fonksiyonu
+        canvas.addEventListener('mousedown', function(e) {
+            isDrawing = true;
+            ctx.beginPath();
+            ctx.moveTo(e.offsetX, e.offsetY);
+        });
+
+        canvas.addEventListener('mousemove', function(e) {
+            if (isDrawing) {
+                ctx.lineTo(e.offsetX, e.offsetY);
+                ctx.stroke();
+            }
+        });
+
+        canvas.addEventListener('mouseup', function() {
+            isDrawing = false;
+        });
+
+        document.getElementById('clear-signature').addEventListener('click', function() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        });
+
+        // Satır ekleme
         document.getElementById('satirEkle').addEventListener('click', function() {
             const table = document.getElementById('malzemeTablosu').getElementsByTagName('tbody')[0];
             const newRow = document.createElement('tr');
             newRow.innerHTML = `
                 <td><input type="text" name="kodNo[]"></td>
                 <td><input type="text" name="malzemeAdi[]"></td>
-                <td><input type="number" class="adet" name="adet[]" min="1" required></td>
-                <td><input type="number" class="birimFiyat" name="birimFiyat[]" min="0" required></td>
-                <td><input type="number" class="toplamTutar" readonly></td>
+                <td><input type="number" name="adet[]" class="adet"></td>
+                <td><input type="number" name="birimFiyat[]" class="birimFiyat"></td>
+                <td><input type="number" name="toplamTutar[]" class="toplamTutar" readonly></td>
+                <td><input type="number" name="vergiOrani[]" class="vergiOrani" value="20"></td>
                 <td><button type="button" class="silButonu">Sil</button></td>
             `;
             table.appendChild(newRow);
-            calculateTotal();
         });
 
-        // Satır Silme Fonksiyonu
         document.addEventListener('click', function(event) {
             if (event.target.classList.contains('silButonu')) {
-                const row = event.target.closest('tr');
-                row.remove();
-                calculateTotal();
+                event.target.parentElement.parentElement.remove();
             }
         });
 
-        // Toplam Hesaplama Fonksiyonu
-        function calculateTotal() {
-            let toplamTutar = 0;
-            const rows = document.querySelectorAll('#malzemeTablosu tbody tr');
-            rows.forEach(row => {
-                const adet = row.querySelector('.adet').value || 0;
-                const birimFiyat = row.querySelector('.birimFiyat').value || 0;
-                const toplam = adet * birimFiyat;
-                row.querySelector('.toplamTutar').value = toplam;
-                toplamTutar += toplam;
-            });
-            document.getElementById('toplamTutar').innerText = toplamTutar.toFixed(2);
-        }
-
-        // Her Girdi Değişikliğinde Toplamı Yeniden Hesapla
-        document.addEventListener('input', function(event) {
-            if (event.target.classList.contains('adet') || event.target.classList.contains('birimFiyat')) {
-                calculateTotal();
-            }
-        });
     </script>
 </body>
 </html>
